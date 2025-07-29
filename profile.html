@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="profile.css">
+</head>
+<body>
+  <div class="profile-card">
+    <img id="avatar" class="avatar" src="https://via.placeholder.com/100" alt="Avatar">
+    <h2 id="name">Loading...</h2>
+    <p id="email"></p>
+    <div class="streak">
+      <span id="streak-count">0</span> day streak 🔥
+    </div>
+    <div class="last-login">
+      Last login: <span id="last-login-date"></span>
+    </div>
+    <button id="logout">Sign Out</button>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    // Supabase setup
+    const supabaseUrl = 'https://ibngcsvefwihtvcavkcd.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlibmdjc3ZlZndpaHR2Y2F2a2NkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE0NDI5MzMsImV4cCI6MjA1NzAxODkzM30.qLj2SS2JGEyITEaa0-AjF7BnNNpXL3yHKJBdWHdsIgc';
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // DOM elements
+    const nameEl = document.getElementById('name');
+    const emailEl = document.getElementById('email');
+    const avatarEl = document.getElementById('avatar');
+    const streakCountEl = document.getElementById('streak-count');
+    const lastLoginDateEl = document.getElementById('last-login-date');
+    const logoutBtn = document.getElementById('logout');
+
+    // Avatar error handler: In case the avatar fails to load, use fallback
+    avatarEl.onerror = () => {
+      const userName = nameEl.textContent || 'User';
+      console.error("Avatar failed to load. Using fallback avatar.");
+      avatarEl.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=random`;
+    };
+
+    // Load profile data
+    async function loadProfile() {
+      try {
+        // Get the current user
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        console.log('User object:', user); // Debug log for user data
+        if (authError || !user) {
+          window.location.href = '/index.html';
+          return;
+        }
+
+        // Set name and email
+        const displayName = user.user_metadata?.name || user.email || 'User';
+        nameEl.textContent = displayName;
+        emailEl.textContent = user.email;
+
+        // Set avatar - Updated Google picture retrieval
+        const identities = user.identities || [];
+        const identityData = identities[0]?.identity_data || {};
+        const googleAvatar = identityData.picture;
+        const metadataAvatar = user.user_metadata?.picture;
+
+        console.log("Google Avatar:", googleAvatar);
+        console.log("Metadata Avatar:", metadataAvatar);
+
+        // Priority: Google identity picture > metadata picture > fallback
+        if (googleAvatar) {
+          avatarEl.src = googleAvatar;
+          console.log("Using Google avatar");
+        } else if (metadataAvatar) {
+          avatarEl.src = metadataAvatar;
+          console.log("Using metadata avatar");
+        } else {
+          const fallbackUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=random`;
+          avatarEl.src = fallbackUrl;
+          console.log("Using fallback avatar:", fallbackUrl);
+        }
+
+        // Streak logic
+        const currentDayLogin = new Date().toISOString().split('T')[0];
+        const { data: userData, error: userDataError } = await supabase
+          .from('User_Data')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+
+        if (userDataError || !userData) {
+          await supabase.from('User_Data').insert([{
+            id: user.id,
+            streak: 1,
+            last_login: currentDayLogin,
+            current_day_login: currentDayLogin
+          }]);
+          streakCountEl.textContent = 1;
+          lastLoginDateEl.textContent = currentDayLogin;
+          return;
+        }
+
+        const lastLogin = userData.last_login;
+        const daysDiff = Math.floor(
+          (new Date(currentDayLogin) - new Date(lastLogin)) / 86400000
+        );
+
+        let newStreak = userData.streak;
+        if (daysDiff === 1) {
+          newStreak += 1;
+        } else if (daysDiff > 1) {
+          newStreak = 1;
+        }
+
+        if (daysDiff !== 0) {
+          await supabase.from('User_Data').update({
+            streak: newStreak,
+            last_login: currentDayLogin,
+            current_day_login: currentDayLogin
+          }).eq('id', user.id);
+        }
+
+        streakCountEl.textContent = newStreak;
+        lastLoginDateEl.textContent = userData.last_login;
+
+      } catch (error) {
+        console.error("Error:", error);
+        alert(`Error: ${error.message}`);
+      }
+    }
+
+    // Logout button
+    logoutBtn.addEventListener('click', async () => {
+      await supabase.auth.signOut();
+      window.location.href = '/index.html';
+    });
+
+    // Load profile data on page load
+    loadProfile();
+  </script>
+</body>
+</html>

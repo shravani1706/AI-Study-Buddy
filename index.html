@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sign In with Google using Supabase</title>
+  <link rel="stylesheet" href="index.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Sign In with Google</h1>
+    <button id="google-signin">Sign in with Google</button>
+    <div id="message"></div>
+  </div>
+
+  <!-- Import Supabase using ES modules -->
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    // Initialize Supabase client with your project credentials.
+    const supabaseUrl = 'https://ibngcsvefwihtvcavkcd.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlibmdjc3ZlZndpaHR2Y2F2a2NkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE0NDI5MzMsImV4cCI6MjA1NzAxODkzM30.qLj2SS2JGEyITEaa0-AjF7BnNNpXL3yHKJBdWHdsIgc';
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    const signInButton = document.getElementById('google-signin');
+    const messageDiv = document.getElementById('message');
+
+    // Check immediately if a session already exists (in case of a previous login)
+    async function checkSession() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        console.log("Existing session found:", session);
+        996
+        window.location.href = '/main.html';
+      }
+    }
+    checkSession();
+
+    // Listen for authentication state changes.
+    supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Auth event:", event, "Session:", session);
+      if (session) {
+        window.location.href = '/main.html';
+      }
+    });
+
+    // Click handler for the Google sign-in button.
+    signInButton.addEventListener('click', async () => {
+      messageDiv.textContent = "Redirecting to Google for sign in...";
+      
+      // Initiate the OAuth flow with a redirect to main.html.
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          // Ensure this redirect URL is whitelisted in your Supabase project's authentication settings.
+          redirectTo: window.location.origin + '/main.html'
+        }
+      });
+
+      if (error) {
+        messageDiv.textContent = "Error: " + error.message;
+        console.error("Error signing in:", error);
+      } else {
+        console.log("OAuth initiated:", data);
+      }
+    });
+  </script>
+</body>
+</html>

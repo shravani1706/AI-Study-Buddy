@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Study Challenge & Answer Evaluator</title>
+  <link rel="stylesheet" href="challenge.css">
+  <style>
+    /* Optional inline styles for improved readability */
+    .challenge-item {
+      margin-bottom: 1em;
+      padding: 0.5em;
+      border-bottom: 1px solid #ccc;
+    }
+    .challenge-question {
+      font-weight: bold;
+      margin-bottom: 0.3em;
+    }
+    .challenge-answer {
+      margin-left: 1em;
+      white-space: pre-wrap; /* Preserve line breaks if any */
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- User Profile Section -->
+    <div id="user-profile">
+      <p id="user-info">Loading user info...</p>
+      <p>Solved Challenges: <span id="solved-challenges-count">0</span></p>
+      <button id="logout-btn">Sign Out</button>
+    </div>
+    <hr>
+
+    <!-- Challenge Generation Section -->
+    <label for="topic-input">Enter topic to study:</label>
+    <input type="text" id="topic-input" placeholder="e.g., Artificial Intelligence">
+
+    <label for="question-type">Select question type:</label>
+    <select id="question-type">
+      <option value="Theory">Theory</option>
+      <option value="Technical">Technical</option>
+      <option value="Conceptual">Conceptual</option>
+      <option value="Problem-Solving">Problem-Solving</option>
+      <option value="Coding">Coding</option>
+      <option value="Other">Other</option>
+    </select>
+
+    <div class="btn-group">
+      <button id="generate-btn">Generate Question</button>
+    </div>
+
+    <div id="question-display"></div>
+
+    <div class="btn-group">
+      <button id="accept-btn">Accept</button>
+      <button id="reject-btn">Reject</button>
+    </div>
+
+    <!-- Answer Submission Section -->
+    <div id="answer-section" class="hidden">
+      <h2>Answer the Question</h2>
+      <textarea id="answer-input" rows="4" placeholder="Write your answer here..."></textarea>
+      <div class="btn-group">
+        <button id="submit-answer-btn">Submit Answer</button>
+      </div>
+      <div id="evaluation-display"></div>
+    </div>
+
+    <!-- Solved Challenges List -->
+    <div id="solved-challenges-section">
+      <h2>Solved Challenges</h2>
+      <ul id="solved-challenges-list"></ul>
+      <!-- Button for toggling the display -->
+      <button id="toggle-challenges-btn" class="toggle-btn" style="display:none;">Show All Solved Challenges</button>
+    </div>
+  </div>
+
+  <script type="module">
+    // -------------------------
+    // 1. IMPORT LIBRARIES
+    // -------------------------
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+    import { GoogleGenerativeAI } from 'https://cdn.skypack.dev/@google/generative-ai';
+
+    // -------------------------
+    // 2. SUPABASE INITIALIZATION
+    // -------------------------
+    const supabaseUrl = 'https://ibngcsvefwihtvcavkcd.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlibmdjc3ZlZndpaHR2Y2F2a2NkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE0NDI5MzMsImV4cCI6MjA1NzAxODkzM30.qLj2SS2JGEyITEaa0-AjF7BnNNpXL3yHKJBdWHdsIgc';
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // -------------------------
+    // 3. GOOGLE GEN AI SETUP
+    // -------------------------
+    const API_KEY = 'AIzaSyC6LfVj7_SQQVjkm8Dmd4_eihzjvGz9v40';
+    const genAI = new GoogleGenerativeAI(API_KEY);
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+
+    // -------------------------
+    // 4. GLOBAL VARIABLES
+    // -------------------------
+    let acceptedQuestion = '';
+    let currentUser = null;
+    let showAllChallenges = false; // toggle to show all or only the last challenge
+
+    // -------------------------
+    // 5. LOAD PROFILE
+    // -------------------------
+    async function loadProfile() {
+      try {
+        // Get current user from Supabase
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (error || !user) {
+          alert('No user is signed in. Redirecting to login...');
+          window.location.href = '/index.html';
+          return;
+        }
+        currentUser = user;
+        document.getElementById('user-info').textContent = `Signed in as: ${user.email}`;
+
+        // Fetch user_stats row to get solved challenges using correct column name
+        const { data: userStats, error: statsError } = await supabase
+          .from('user_stats')
+          .select('solved_challenges')
+          .eq('user_id', user.id)
+          .single();
+
+        if (statsError || !userStats) {
+          document.getElementById('solved-challenges-count').textContent = 0;
+        } else {
+          document.getElementById('solved-challenges-count').textContent = userStats.solved_challenges;
+        }
+
+        await loadSolvedChallenges();
+      } catch (e) {
+        console.error('Error loading profile:', e);
+      }
+    }
+
+    // -------------------------
+    // 6. LOAD SOLVED CHALLENGES
+    // -------------------------
+    async function loadSolvedChallenges() {
+      if (!currentUser) return;
+      const { data: challenges, error } = await supabase
+        .from('challenges')
+        .select('*')
+        .eq('user_id', currentUser.id)
+        .eq('is_correct', true);
+      if (error) {
+        console.error('Error fetching solved challenges:', error);
+        return;
+      }
+      const listEl = document.getElementById('solved-challenges-list');
+      listEl.innerHTML = '';
+      
+      // If no challenges, simply exit.
+      if (!challenges || challenges.length === 0) {
+        listEl.innerHTML = '<li>No challenges solved yet.</li>';
+        document.getElementById('toggle-challenges-btn').style.display = 'none';
+        return;
+      }
+      
+      // Determine which challenges to display.
+      let challengesToShow = showAllChallenges ? challenges : [challenges[challenges.length - 1]];
+      
+      challengesToShow.forEach(challenge => {
+        // Create a list item with separate divs for question and answer
+        const li = document.createElement('li');
+        li.classList.add('challenge-item');
+        
+        const questionDiv = document.createElement('div');
+        questionDiv.classList.add('challenge-question');
+        questionDiv.textContent = `Q: ${challenge.question}`;
+        
+        const answerDiv = document.createElement('div');
+        answerDiv.classList.add('challenge-answer');
+        answerDiv.textContent = `A: ${challenge.answer}`;
+        
+        li.appendChild(questionDiv);
+        li.appendChild(answerDiv);
+        listEl.appendChild(li);
+      });
+      
+      // Toggle button display if more than one challenge exists.
+      const toggleBtn = document.getElementById('toggle-challenges-btn');
+      if (challenges.length > 1) {
+        toggleBtn.style.display = 'block';
+        toggleBtn.textContent = showAllChallenges ? 'Show Last Solved Challenge' : 'Show All Solved Challenges';
+      } else {
+        toggleBtn.style.display = 'none';
+      }
+    }
+
+    // -------------------------
+    // 7. SIGN OUT
+    // -------------------------
+    document.getElementById('logout-btn').addEventListener('click', async () => {
+      await supabase.auth.signOut();
+      window.location.href = '/index.html';
+    });
+
+    // -------------------------
+    // 8. GENERATE QUESTION
+    // -------------------------
+    async function generateQuestion() {
+      const topic = document.getElementById('topic-input').value.trim();
+      if (!topic) {
+        alert('Please enter a topic.');
+        return;
+      }
+      const questionType = document.getElementById('question-type').value;
+      const prompt = `Generate a challenging ${questionType} question for someone studying ${topic}. Provide one question only.`;
+      const questionDisplay = document.getElementById('question-display');
+      questionDisplay.textContent = 'Generating question...';
+
+      try {
+        const result = await model.generateContent(prompt);
+        const question = result.response.text();
+        questionDisplay.textContent = question;
+      } catch (err) {
+        console.error('Error generating question:', err);
+        questionDisplay.textContent = 'Error generating question.';
+      }
+    }
+
+    // -------------------------
+    // 9. ACCEPT / REJECT
+    // -------------------------
+    document.getElementById('accept-btn').addEventListener('click', () => {
+      const questionText = document.getElementById('question-display').textContent;
+      if (!questionText || questionText === 'Generating question...' || questionText.startsWith('Error')) {
+        alert('Please generate a valid question first.');
+        return;
+      }
+      acceptedQuestion = questionText;
+      document.getElementById('answer-section').classList.remove('hidden');
+    });
+
+    document.getElementById('reject-btn').addEventListener('click', generateQuestion);
+
+    // -------------------------
+    // 10. CHECK ANSWER
+    // -------------------------
+    async function checkAnswer(question, answer) {
+      const prompt = `Is the answer "${answer}" correct for the question "${question}"? Respond with "Yes" or "No".`;
+      try {
+        const result = await model.generateContent(prompt);
+        const response = result.response.text().trim().toLowerCase();
+        return response === 'yes';
+      } catch (error) {
+        console.error('Error checking answer:', error);
+        return false;
+      }
+    }
+
+    // -------------------------
+    // 11. SUBMIT ANSWER
+    // -------------------------
+    async function submitAnswer() {
+      const answerInput = document.getElementById('answer-input');
+      const answer = answerInput.value.trim();
+      if (!answer) {
+        alert('Please write an answer before submitting.');
+        return;
+      }
+
+      // Check if answer is correct
+      const isCorrect = await checkAnswer(acceptedQuestion, answer);
+
+      if (isCorrect) {
+        // Insert the challenge record into "challenges"
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError || !user) {
+          alert('User not authenticated.');
+          return;
+        }
+        const insertResponse = await supabase
+          .from('challenges')
+          .insert([{
+            user_id: user.id,
+            topic: document.getElementById('topic-input').value.trim(),
+            type: document.getElementById('question-type').value,
+            question: acceptedQuestion,
+            answer: answer,
+            is_correct: true
+          }]);
+        if (insertResponse.error) {
+          console.error('Error inserting challenge:', insertResponse.error);
+          alert('Error saving challenge. Please try again.');
+          return;
+        }
+
+        // Update the user's solved challenge count in "user_stats"
+        let { data: userStats } = await supabase
+          .from('user_stats')
+          .select('solved_challenges')
+          .eq('user_id', user.id)
+          .single();
+        let newSolvedCount = 1;
+        if (userStats) {
+          newSolvedCount = userStats.solved_challenges + 1;
+          const updateResponse = await supabase
+            .from('user_stats')
+            .update({ solved_challenges: newSolvedCount })
+            .eq('user_id', user.id);
+          if (updateResponse.error) {
+            console.error('Error updating user stats:', updateResponse.error);
+            alert('Error updating user stats. Please try again.');
+          }
+        } else {
+          // Insert a new row if none exists
+          const insertStats = await supabase
+            .from('user_stats')
+            .insert([{ user_id: user.id, solved_challenges: newSolvedCount }]);
+          if (insertStats.error) {
+            console.error('Error inserting user stats:', insertStats.error);
+            alert('Error saving user stats. Please try again.');
+          }
+        }
+
+        document.getElementById('solved-challenges-count').textContent = newSolvedCount;
+        alert('Correct answer! Your challenge has been solved.');
+      } else {
+        alert('Incorrect answer. Please try again or regenerate a new question.');
+      }
+
+      // Reset UI elements after submission
+      answerInput.value = '';
+      document.getElementById('answer-section').classList.add('hidden');
+      await loadSolvedChallenges();
+    }
+
+    // -------------------------
+    // 12. TOGGLE SOLVED CHALLENGES VIEW
+    // -------------------------
+    document.getElementById('toggle-challenges-btn').addEventListener('click', () => {
+      showAllChallenges = !showAllChallenges;
+      loadSolvedChallenges();
+    });
+
+    // -------------------------
+    // 13. ATTACH EVENT LISTENERS & INIT
+    // -------------------------
+    document.getElementById('generate-btn').addEventListener('click', generateQuestion);
+    document.getElementById('submit-answer-btn').addEventListener('click', submitAnswer);
+
+    // Load user profile on page load
+    loadProfile();
+  </script>
+</body>
+</html>

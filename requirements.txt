@@ -1,0 +1,15 @@
+streamlit
+google-generativeai
+youtube-transcript-api
+fpdf
+requests
+python-dotenv
+PyPDF2
+matplotlib
+numpy
+langchain
+faiss-cpu
+langchain-google-genai
+langchain-community
+langdetect
+whisper

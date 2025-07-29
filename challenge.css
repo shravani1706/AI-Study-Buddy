@@ -1,0 +1,180 @@
+/* Global Styles */
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #0d1117;
+    color: #c9d1d9;
+    margin: 0;
+    padding: 20px;
+  }
+  
+  /* Container */
+  .container {
+    background: #161b22;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(240, 246, 252, 0.1);
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  
+  /* User Profile Section */
+  #user-profile {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  
+  #user-profile p {
+    margin: 5px 0;
+    flex: 1 1 auto;
+  }
+  
+  #user-profile button {
+    background: #238636;
+    color: #ffffff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    margin-left: 10px;
+  }
+  
+  #user-profile button:hover {
+    background: #2ea043;
+  }
+  
+  /* Horizontal Rule */
+  hr {
+    border: 1px solid #30363d;
+    margin: 20px 0;
+  }
+  
+  /* Form Elements */
+  label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+  }
+  
+  input[type="text"],
+  select,
+  textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 5px;
+    color: #c9d1d9;
+  }
+  
+  input[type="text"]::placeholder,
+  textarea::placeholder {
+    color: #8b949e;
+  }
+  
+  /* Button Groups */
+  .btn-group {
+    text-align: center;
+    margin-bottom: 15px;
+  }
+  
+  .btn-group button {
+    background: #238636;
+    color: #ffffff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin: 5px;
+    transition: background 0.3s ease;
+  }
+  
+  .btn-group button:hover {
+    background: #2ea043;
+  }
+  
+  /* Question Display */
+  #question-display {
+    background: #0d1117;
+    border: 1px solid #30363d;
+    padding: 15px;
+    border-radius: 5px;
+    min-height: 50px;
+    margin-bottom: 15px;
+  }
+  
+  /* Answer Submission Section */
+  #answer-section {
+    background: #161b22;
+    padding: 20px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+  }
+  
+  .hidden {
+    display: none;
+  }
+  
+  /* Solved Challenges Section */
+  #solved-challenges-section {
+    background: #161b22;
+    padding: 20px;
+    border-radius: 5px;
+    margin-top: 20px;
+  }
+  
+  #solved-challenges-section h2 {
+    margin-top: 0;
+  }
+  
+  #solved-challenges-list {
+    list-style: none;
+    padding: 0;
+  }
+  
+  #solved-challenges-list li {
+    background: #0d1117;
+    border: 1px solid #30363d;
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 5px;
+  }
+  
+  /* Textarea Resizing */
+  textarea {
+    resize: vertical;
+  }
+/* Solved Challenges Section */
+#solved-challenges-section {
+    background: #161b22;
+    padding: 20px;
+    border-radius: 5px;
+    margin-top: 20px;
+  }
+  
+  #solved-challenges-section h2 {
+    margin-top: 0;
+    color: #f0f6fc;
+  }
+  
+  #solved-challenges-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  #solved-challenges-list li {
+    background: #0d1117;
+    border: 1px solid #30363d;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    color: #c9d1d9;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+    

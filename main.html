@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Study Buddy - Your AI Learning Companion</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <!-- Spline viewer for 3D background -->
+  <script type="module" src="https://unpkg.com/@splinetool/viewer@1.9.59/build/spline-viewer.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Authentication Check using Supabase -->
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+    
+    const supabaseUrl = 'https://ibngcsvefwihtvcavkcd.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlibmdjc3ZlZndpaHR2Y2F2a2NkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE0NDI5MzMsImV4cCI6MjA1NzAxODkzM30.qLj2SS2JGEyITEaa0-AjF7BnNNpXL3yHKJBdWHdsIgc';
+    const supabase = createClient(supabaseUrl, supabaseKey);
+    
+    async function checkAuth() {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error) {
+        console.error('Error fetching session:', error);
+      }
+      if (!session) {
+        alert('Please login first.');
+        window.location.href = 'index.html';
+      }
+    }
+    // Run authentication check before loading the rest of the page.
+    await checkAuth();
+  </script>
+  
+  <!-- Spline 3D Background -->
+  <spline-viewer url="https://prod.spline.design/wMKU-w8K9YWn0KKs/scene.splinecode"></spline-viewer>
+  
+  <!-- Navigation -->
+  <nav>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#benefits">Benefits</a>
+      <a href="#faq">FAQ</a>
+      <a href="#contact">Contact</a>
+    </div>
+    <a href="profile.html" class="profile-btn">Profile</a>
+  </nav>
+  
+  <!-- Hero Section -->
+  <section class="hero">
+    <div>
+      <h1>AI Study Buddy</h1>
+    </div>
+  </section>
+  
+  <!-- Features Section with Slider Dots -->
+  <section class="content-section" id="features">
+    <h2>🌟 Features</h2>
+    <div class="features-container">
+      <div class="features-grid" id="featuresGrid">
+        <!-- Feature Cards -->
+        <div class="feature-card">
+          <img src="images/chatpdf.jpeg" alt="Interactive Learning">
+          <h3>📚 ChatPdf</h3>
+          <p>Interact with PDFs, get instant summaries.</p>
+          <a href="https://chatpdf-2692004.streamlit.app/" target="_blank">
+            <button class="feature-btn">View</button>
+          </a>
+        </div>
+        <div class="feature-card">
+          <img src="images/learning_path.jpg" alt="Personalized Plans">
+          <h3>🎯 Learning Path Generator</h3>
+          <p>Personalized learning paths tailored to your goals.</p>
+          <a href="https://pathgenerator-2692004.streamlit.app/" target="_blank">
+            <button class="feature-btn">View</button>
+          </a>
+        </div>
+        <div class="feature-card">
+          <img src="images/challenge.jpeg" alt="Interactive Learning">
+          <h3>📚 Challenge Solver</h3>
+          <p>Dare to conquer every challenge.</p>
+          <a href="challenge.html" target="_blank">
+            <button class="feature-btn">View</button>
+          </a>
+        </div>
+        <div class="feature-card">
+          <img src="images/quiz.jpeg" alt="Real-time Feedback">
+          <h3>⚡ Quiz Generator</h3>
+          <p>Create personalized quizzes for efficient learning.</p>
+          <a href="https://quiz-2692004.streamlit.app/" target="_blank">
+            <button class="feature-btn">View</button>
+          </a>
+        </div>
+        <div class="feature-card">
+          <img src="images/youtube.jpeg" alt="Smart Recommendations">
+          <h3>🤖 YouTube Summarizer</h3>
+          <p>Summarize YouTube videos for quick insights.</p>
+          <a href="https://summerizer-2692004.streamlit.app/" target="_blank">
+            <button class="feature-btn">View</button>
+          </a>
+        </div>
+        <div class="feature-card">
+          <img src="images/interview.jpeg" alt="Interview Preparation">
+          <h3>💼 Interview Preparation</h3>
+          <p>Practice realistic interview questions with AI feedback.</p>
+          <a href="https://a4mnxsqj2t3dewiiyjsran.streamlit.app/" target="_blank">
+            <button class="feature-btn">View</button>
+          </a>
+        </div>
+        <div class="feature-card">
+          <img src="images/notes_generator.jpeg" alt="Notes Generator">
+          <h3>📝 Notes Generator</h3>
+          <p>Generate detailed study notes with images and key points.</p>
+          <a href="https://c8x7dgnzvjiowrzzcgf3xc.streamlit.app/" target="_blank">
+            <button class="feature-btn">View</button>
+          </a>
+        </div>
+        <div class="feature-card">
+          <img src="images/flashcard_generator.jpg" alt="Flashcard Generator">
+          <h3>🔖 Flashcard Generator</h3>
+          <p>Convert your study material into interactive flashcards.</p>
+          <a href="https://6b2armoicksmre4yk7qfjp.streamlit.app/" target="_blank">
+            <button class="feature-btn">View</button>
+          </a>
+        </div>
+        <div class="feature-card">
+          <img src="images/dashboard.jpg" alt="AI & Tech Dashboard">
+          <h3>🔖 AI & Tech Dashboard</h3>
+          <p>Stay updated with the latest AI news, tech trends, and industry insights—all in one place.</p>
+          <a href="https://acwccr2xkt9qxyq3ztii4z.streamlit.app/" target="_blank">
+            <button class="feature-btn">View</button>
+          </a>
+        </div>
+      </div>
+      <div class="slider-dots" id="sliderDotsFeatures"></div>
+    </div>
+  </section>
+  
+  <!-- Benefits Section with Slider -->
+  <section class="content-section" id="benefits">
+    <h2>🚀 Benefits</h2>
+    <div class="features-container">
+      <div class="features-grid" id="benefitsGrid">
+        <div class="feature-card">
+          <h3>⏳ Boost Efficiency</h3>
+          <p>Reduce study time with smart recommendations and streamlined workflows.</p>
+        </div>
+        <div class="feature-card">
+          <h3>📈 Track Progress</h3>
+          <p>Visual analytics and performance insights help you monitor improvements.</p>
+        </div>
+        <div class="feature-card">
+          <h3>🌟 Enhanced Engagement</h3>
+          <p>Interactive content and personalized learning make studying fun.</p>
+        </div>
+        <div class="feature-card">
+          <h3>💡 Personalized Insights</h3>
+          <p>Receive tailored advice and study tips based on your performance.</p>
+        </div>
+      </div>
+      <div class="slider-dots" id="sliderDotsBenefits"></div>
+    </div>
+  </section>
+  
+  <!-- FAQ Section with Slider -->
+  <section class="content-section" id="faq">
+    <h2>❓ FAQ</h2>
+    <div class="features-container">
+      <div class="features-grid" id="faqGrid">
+        <div class="feature-card">
+          <h3>How does it work?</h3>
+          <p>Our AI analyzes your learning patterns and provides optimized study plans.</p>
+        </div>
+        <div class="feature-card">
+          <h3>Is it free to use?</h3>
+          <p>Yes! Begin with our free plan and upgrade later for premium features.</p>
+        </div>
+        <div class="feature-card">
+          <h3>Can I upgrade to premium?</h3>
+          <p>Absolutely. Premium plans offer additional features, in-depth analytics, and priority support.</p>
+        </div>
+        <div class="feature-card">
+          <h3>What technologies are used?</h3>
+          <p>We integrate state-of-the-art AI, cloud computing, and interactive design for a seamless experience.</p>
+        </div>
+      </div>
+      <div class="slider-dots" id="sliderDotsFaq"></div>
+    </div>
+  </section>
+  
+  <!-- Footer Section -->  
+  <footer id="contact">
+    <p>📧 Contact us: <a href="mailto:contact@aistudybuddy.com">contact@aistudybuddy.com</a></p>
+    <p style="margin-top: 1rem;">© 2025 AI Study Buddy. All rights reserved.</p>
+  </footer>
+  
+  <!-- Slider Dots Script -->
+  <script>
+    // Function to initialize slider dots for a given grid and dots container
+    function initSliderDots(gridId, dotsContainerId) {
+      const grid = document.getElementById(gridId);
+      const dotsContainer = document.getElementById(dotsContainerId);
+      const cards = grid.querySelectorAll('.feature-card');
+      let currentIndex = 0;
+      dotsContainer.innerHTML = '';
+      cards.forEach((card, index) => {
+        const dot = document.createElement('div');
+        dot.classList.add('slider-dot');
+        if (index === 0) dot.classList.add('active');
+        dot.addEventListener('click', () => {
+          grid.scrollTo({ left: card.offsetLeft, behavior: 'smooth' });
+        });
+        dotsContainer.appendChild(dot);
+      });
+      grid.addEventListener('scroll', () => {
+        const newIndex = Math.round(grid.scrollLeft / (cards[0].offsetWidth + 32));
+        if (newIndex !== currentIndex) {
+          currentIndex = newIndex;
+          const dots = dotsContainer.querySelectorAll('.slider-dot');
+          dots.forEach((dot, idx) => {
+            dot.classList.toggle('active', idx === currentIndex);
+          });
+        }
+      });
+    }
+  
+    // Initialize slider dots for each section when the document loads
+    document.addEventListener("DOMContentLoaded", () => {
+      initSliderDots("featuresGrid", "sliderDotsFeatures");
+      initSliderDots("benefitsGrid", "sliderDotsBenefits");
+      initSliderDots("faqGrid", "sliderDotsFaq");
+    });
+  </script>
+</body>
+</html>

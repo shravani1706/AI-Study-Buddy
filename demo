@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Study Challenge & Answer Evaluator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 700px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 20px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h1, h2 {
+      text-align: center;
+      color: #333;
+    }
+    input[type="text"], textarea, select {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 5px;
+      border: none;
+      border-radius: 4px;
+      background-color: #007BFF;
+      color: #fff;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    #question-display, #evaluation-display {
+      margin-top: 20px;
+      padding: 15px;
+      background: #e9ecef;
+      border-radius: 4px;
+      min-height: 60px;
+    }
+    .btn-group {
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Study Challenge Generator</h1>
+    <label for="topic-input">Enter topic to study:</label>
+    <input type="text" id="topic-input" placeholder="e.g., Artificial Intelligence">
+    
+    <label for="question-type">Select question type:</label>
+    <select id="question-type">
+      <option value="Theory">Theory</option>
+      <option value="Tech">Tech</option>
+      <option value="Other">Other</option>
+    </select>
+    
+    <div class="btn-group">
+      <button id="generate-btn">Generate Question</button>
+    </div>
+    
+    <div id="question-display"></div>
+    
+    <div class="btn-group">
+      <button id="accept-btn">Accept</button>
+      <button id="reject-btn">Reject</button>
+    </div>
+    
+    <!-- Answer Submission Section (hidden until question accepted) -->
+    <div id="answer-section" style="display: none;">
+      <h2>Answer the Question</h2>
+      <textarea id="answer-input" rows="4" placeholder="Write your answer here..."></textarea>
+      <div class="btn-group">
+        <button id="submit-answer-btn">Submit Answer</button>
+      </div>
+      <div id="evaluation-display"></div>
+    </div>
+  </div>
+
+  <script type="module">
+    // Import GoogleGenerativeAI from a CDN
+    import { GoogleGenerativeAI } from 'https://cdn.skypack.dev/@google/generative-ai';
+
+    // Initialize the Generative AI client (Demo API key; secure this in production)
+    const API_KEY = "AIzaSyDNVBWwOggYgwmrFNS3kC61gj7uENvr26E";
+    const genAI = new GoogleGenerativeAI(API_KEY);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+    // Variable to store the accepted question
+    let acceptedQuestion = "";
+
+    // Function to generate a challenge question
+    async function generateQuestion() {
+      const topic = document.getElementById('topic-input').value.trim();
+      if (!topic) {
+        alert("Please enter a topic.");
+        return;
+      }
+      const questionType = document.getElementById('question-type').value;
+      // Build a prompt to generate one challenging question based on the topic and type
+      const prompt = `Generate a challenging ${questionType} question for someone studying ${topic}. Provide one question only.`;
+      document.getElementById('question-display').textContent = 'Generating question...';
+      
+      try {
+        const result = await model.generateContent(prompt);
+        const question = result.response.text();
+        document.getElementById('question-display').textContent = question;
+      } catch (error) {
+        console.error(error);
+        document.getElementById('question-display').textContent = 'Error generating question.';
+      }
+    }
+
+    // Function to evaluate the submitted answer
+    async function evaluateAnswer() {
+      const answer = document.getElementById('answer-input').value.trim();
+      if (!answer) {
+        alert("Please write an answer before submitting.");
+        return;
+      }
+      const questionType = document.getElementById('question-type').value;
+      // Build a prompt and instruct the model to output the result in HTML format
+      const prompt = `You are an expert evaluator. For the following ${questionType} question:
+      
+Question: "${acceptedQuestion}"
+      
+A student answered: "${answer}"
+      
+Evaluate whether the answer is correct or not, and provide a detailed explanation with HTML formatting. The output should include headings, bullet points, and code blocks where applicable.`;
+      
+      // Use innerHTML to allow the HTML formatting to render
+      document.getElementById('evaluation-display').innerHTML = 'Evaluating answer...';
+
+      try {
+        const result = await model.generateContent(prompt);
+        const evaluation = result.response.text();
+        document.getElementById('evaluation-display').innerHTML = evaluation;
+      } catch (error) {
+        console.error(error);
+        document.getElementById('evaluation-display').innerHTML = 'Error evaluating answer.';
+      }
+    }
+
+    // Event listeners
+    document.getElementById('generate-btn').addEventListener('click', generateQuestion);
+
+    // Accept the question and reveal the answer submission section
+    document.getElementById('accept-btn').addEventListener('click', () => {
+      acceptedQuestion = document.getElementById('question-display').textContent;
+      if (!acceptedQuestion || acceptedQuestion === 'Generating question...' || acceptedQuestion.startsWith('Error')) {
+        alert("Please generate a valid question first.");
+        return;
+      }
+      document.getElementById('answer-section').style.display = 'block';
+    });
+
+    // Reject the current question and generate a new one
+    document.getElementById('reject-btn').addEventListener('click', generateQuestion);
+
+    // Evaluate the answer upon submission
+    document.getElementById('submit-answer-btn').addEventListener('click', evaluateAnswer);
+  </script>
+</body>
+</html>
